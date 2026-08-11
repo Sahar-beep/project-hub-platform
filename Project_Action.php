@@ -13,7 +13,7 @@ $pid = isset($_GET['pid']) ? intval($_GET['pid']) : 0;
 $title = $start_date = $end_date = $short_description = $phase = '';
 $error = '';
 
-// --- NEW CODE: HANDLE DELETE ACTION ---
+// --- HANDLE DELETE ACTION ---
 if ($action === 'delete' && $pid > 0) {
     // Security Feature 3 Verification: CSRF Token Validation for GET actions
     if (!isset($_GET['token']) || $_GET['token'] !== $_SESSION['csrf_token']) {
@@ -41,7 +41,6 @@ if ($action === 'delete' && $pid > 0) {
     header("Location: Dashboard.php");
     exit;
 }
-// --- END OF NEW DELETE CODE ---
 
 if ($action === 'edit' && $pid > 0) {
     $stmt = $pdo->prepare("SELECT * FROM projects WHERE pid = ?");
@@ -91,4 +90,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-<!-- Rest of your existing HTML form code remains unchanged below this -->
+
+<div class="card" style="max-width: 650px; margin: 0 auto;">
+    <h2><?= $action === 'edit' ? 'Update Project Parameters' : 'Publish New Enterprise Project' ?></h2>
+    <?php if ($error): ?><div style="color: #dc3545; margin-bottom: 15px; font-weight: bold;"><?= sanitize($error) ?></div><?php endif; ?>
+
+    <form action="Project_Action.php?action=<?= sanitize($action) ?>&pid=<?= $pid ?>" method="POST">
+        <!-- Hidden input supplying active token variables for safety checks -->
+        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+
+        <label>Project Title Name:</label>
+        <input type="text" name="title" class="form-control" value="<?= sanitize($title) ?>" required>
+
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 1;">
+                <label>Target Kickoff Date:</label>
+                <input type="date" name="start_date" class="form-control" value="<?= sanitize($start_date) ?>" required>
+            </div>
+            <div style="flex: 1;">
+                <label>Target Closure Date:</label>
+                <input type="date" name="end_date" class="form-control" value="<?= sanitize($end_date) ?>" required>
+            </div>
+        </div>
+
+        <label>Development Phase State:</label>
+        <select name="phase" class="form-control" style="background:#fff; height:40px;" required>
+            <option value="design" <?= $phase === 'design' ? 'selected' : '' ?>>Design Planning</option>
+            <option value="development" <?= $phase === 'development' ? 'selected' : '' ?>>In Development</option>
+            <option value="testing" <?= $phase === 'testing' ? 'selected' : '' ?>>Quality Assurance Testing</option>
+            <option value="deployment" <?= $phase === 'deployment' ? 'selected' : '' ?>>System Deployment</option>
+            <option value="complete" <?= $phase === 'complete' ? 'selected' : '' ?>>Complete</option>
+        </select>
+
+        <label>Short Technical Summary Description:</label>
+        <textarea name="short_description" class="form-control" rows="5" style="height:auto;" required><?= sanitize($short_description) ?></textarea>
+
+        <div style="margin-top: 10px; display: flex; gap: 10px;">
+            <button type="submit" class="btn">Save Changes</button>
+            <a href="Dashboard.php" class="btn" style="background-color: #6c757d;">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<?php include 'Footer.php'; ?>
